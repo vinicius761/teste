@@ -62,9 +62,7 @@ class HomePage extends StatelessWidget {
                           icon: Icon(Icons.edit),
                         ),
                         IconButton(
-                          onPressed: () {
-                            Get.toNamed('edit');
-                          },
+                          onPressed: () => controller.excluir(user.id),
                           icon: Icon(Icons.delete),
                         ),
                       ],

@@ -9,6 +9,8 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:teste/Models/UserModel.dart';
 
 class UserController extends GetxController {
+  Rx<UserModel?> user = Rx<UserModel?>(null);
+
   RxList<UserModel> users = <UserModel>[
     UserModel(
       id: 1,
@@ -55,7 +57,16 @@ class UserController extends GetxController {
       );
 
       users.add(res);
+
+      // limpar campos
+      nome.clear();
+      sobrenome.clear();
+      email.clear();
+      senha.clear();
+      confirmarSenha.clear();
+
       Get.back();
+
       Get.snackbar(
         'Sucesso',
         'Usuário válido!',
@@ -64,5 +75,37 @@ class UserController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
     }
+  }
+
+  edit() {}
+
+  void excluir(int id) {
+    Get.dialog(
+      AlertDialog(
+        title: Text('Confirmar exclusão'),
+        content: Text('Tem certeza que deseja excluir este usuário?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(), // fecha o dialog
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              users.removeWhere((user) => user.id == id);
+              Get.back(); // fecha o dialog
+
+              Get.snackbar(
+                'Sucesso',
+                'Usuário excluído!',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red,
+                colorText: Colors.white,
+              );
+            },
+            child: Text('Excluir', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 }
