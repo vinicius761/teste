@@ -104,6 +104,13 @@ class EditPage extends StatelessWidget {
 
               SizedBox(height: 20),
 
+              ElevatedButton(
+                onPressed: controller.tirarFoto,
+                child: Text('Tirar foto'),
+              ),
+
+              SizedBox(height: 20),
+
               InkWell(
                 onTap: controller.updateUser,
                 child: Container(

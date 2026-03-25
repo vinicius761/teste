@@ -8,6 +8,7 @@ import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_navigation/src/snackbar/snackbar.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:teste/Models/UserModel.dart';
 
 class UserController extends GetxController {
@@ -55,8 +56,19 @@ class UserController extends GetxController {
   TextEditingController emailEdit = TextEditingController();
   TextEditingController senhaEdit = TextEditingController();
   TextEditingController confirmarSenhaEdit = TextEditingController();
+  final ImagePicker picker = ImagePicker();
+  RxString avatarPath = ''.obs;
+
   RxBool isEditing = false.obs;
   RxInt idEdit = 0.obs;
+
+  Future<void> tirarFoto() async {
+    final XFile? photo = await picker.pickImage(source: ImageSource.camera);
+
+    if (photo != null) {
+      avatarPath.value = photo.path; // 👈 SALVA O CAMINHO
+    }
+  }
 
   void salvar() {
     if (formKey.currentState!.validate()) {
@@ -89,7 +101,7 @@ class UserController extends GetxController {
     }
   }
 
-  void edit(int id) {
+  void editar(int id) {
     final res = users.firstWhere((u) => u.id == id);
 
     nomeEdit.text = res.nome;
@@ -115,7 +127,7 @@ class UserController extends GetxController {
           sobrenome: sobrenomeEdit.text,
           email: emailEdit.text,
           senha: senhaEdit.text,
-          avatar: users[index].avatar,
+          avatar: avatarPath.value,
         );
 
         users.refresh();

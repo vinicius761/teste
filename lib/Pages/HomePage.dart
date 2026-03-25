@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
@@ -28,7 +30,15 @@ class HomePage extends StatelessWidget {
                     Row(
                       children: [
                         CircleAvatar(
-                          backgroundImage: NetworkImage(user.avatar ?? ''),
+                          backgroundImage:
+                              (user.avatar == null || user.avatar!.isEmpty)
+                              ? null
+                              : user.avatar!.startsWith('http')
+                              ? NetworkImage(user.avatar!)
+                              : FileImage(File(user.avatar!)) as ImageProvider,
+                          child: (user.avatar == null || user.avatar!.isEmpty)
+                              ? Icon(Icons.person)
+                              : null,
                         ),
                         SizedBox(width: 12),
                         Column(
@@ -56,7 +66,7 @@ class HomePage extends StatelessWidget {
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () => controller.edit(user.id),
+                          onPressed: () => controller.editar(user.id),
                           icon: Icon(Icons.edit),
                         ),
                         IconButton(
