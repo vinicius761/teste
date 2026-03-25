@@ -107,10 +107,7 @@ class CreatePage extends StatelessWidget {
                   padding: EdgeInsets.all(15),
                   color: Colors.blue,
                   child: Center(
-                    child: Text(
-                      'Salvar',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    child: Text('Criar', style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ),

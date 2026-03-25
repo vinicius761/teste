@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get_connect/http/src/utils/utils.dart';
@@ -46,6 +48,16 @@ class UserController extends GetxController {
   TextEditingController senha = TextEditingController();
   TextEditingController confirmarSenha = TextEditingController();
 
+  ///formulário de edir de usuário
+  final formEditKey = GlobalKey<FormState>();
+  TextEditingController nomeEdit = TextEditingController();
+  TextEditingController sobrenomeEdit = TextEditingController();
+  TextEditingController emailEdit = TextEditingController();
+  TextEditingController senhaEdit = TextEditingController();
+  TextEditingController confirmarSenhaEdit = TextEditingController();
+  RxBool isEditing = false.obs;
+  RxInt idEdit = 0.obs;
+
   void salvar() {
     if (formKey.currentState!.validate()) {
       final res = UserModel(
@@ -77,7 +89,51 @@ class UserController extends GetxController {
     }
   }
 
-  edit() {}
+  void edit(int id) {
+    final res = users.firstWhere((u) => u.id == id);
+
+    nomeEdit.text = res.nome;
+    sobrenomeEdit.text = res.sobrenome;
+    emailEdit.text = res.email;
+    senhaEdit.text = res.senha;
+    confirmarSenhaEdit.text = res.senha;
+
+    idEdit.value = id;
+    isEditing.value = true;
+
+    Get.toNamed('/edit');
+  }
+
+  void updateUser() {
+    if (formEditKey.currentState!.validate()) {
+      final index = users.indexWhere((u) => u.id == idEdit.value);
+
+      if (index != -1) {
+        users[index] = UserModel(
+          id: idEdit.value,
+          nome: nomeEdit.text,
+          sobrenome: sobrenomeEdit.text,
+          email: emailEdit.text,
+          senha: senhaEdit.text,
+          avatar: users[index].avatar,
+        );
+
+        users.refresh();
+
+        isEditing.value = false;
+
+        Get.back();
+
+        Get.snackbar(
+          'Sucesso',
+          'Usuário atualizado!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    }
+  }
 
   void excluir(int id) {
     Get.dialog(
@@ -93,14 +149,6 @@ class UserController extends GetxController {
             onPressed: () {
               users.removeWhere((user) => user.id == id);
               Get.back(); // fecha o dialog
-
-              Get.snackbar(
-                'Sucesso',
-                'Usuário excluído!',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red,
-                colorText: Colors.white,
-              );
             },
             child: Text('Excluir', style: TextStyle(color: Colors.red)),
           ),

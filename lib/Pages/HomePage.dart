@@ -56,9 +56,7 @@ class HomePage extends StatelessWidget {
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () {
-                            Get.toNamed('edit');
-                          },
+                          onPressed: () => controller.edit(user.id),
                           icon: Icon(Icons.edit),
                         ),
                         IconButton(
