@@ -54,7 +54,7 @@ class UserController extends GetxController {
 
   Future<void> loadUsers() async {
     final dbUsers = await DatabaseHelper.instance.getUsers();
-    users.assignAll(dbUsers); // atualiza a lista reativa
+    users.assignAll(dbUsers);
   }
 
   void salvar() async {
@@ -68,13 +68,10 @@ class UserController extends GetxController {
         avatar: avatarPath.value.isEmpty ? null : avatarPath.value,
       );
 
-      // salva no SQLite
       await DatabaseHelper.instance.insertUser(newUser);
 
-      // atualiza a lista reativa
       users.add(newUser);
 
-      // limpa campos
       nome.clear();
       sobrenome.clear();
       email.clear();
@@ -119,10 +116,8 @@ class UserController extends GetxController {
         avatar: avatarPath.value,
       );
 
-      // atualiza no SQLite
       await DatabaseHelper.instance.updateUser(updatedUser);
 
-      // atualiza a lista reativa
       final index = users.indexWhere((u) => u.id == idEdit.value);
       if (index != -1) {
         users[index] = updatedUser;
@@ -150,10 +145,8 @@ class UserController extends GetxController {
           TextButton(onPressed: () => Get.back(), child: Text('Cancelar')),
           TextButton(
             onPressed: () async {
-              // remove do SQLite
               await DatabaseHelper.instance.deleteUser(id);
 
-              // remove da lista reativa
               users.removeWhere((u) => u.id == id);
 
               Get.back();

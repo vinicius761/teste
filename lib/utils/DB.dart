@@ -23,15 +23,15 @@ class DatabaseHelper {
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE users (
-        id INTEGER PRIMARY KEY,
-        nome TEXT NOT NULL,
-        sobrenome TEXT NOT NULL,
-        email TEXT NOT NULL,
-        senha TEXT NOT NULL,
-        avatar TEXT
-      )
-    ''');
+        CREATE TABLE users (
+          id INTEGER PRIMARY KEY,
+          nome TEXT NOT NULL,
+          sobrenome TEXT NOT NULL,
+          email TEXT NOT NULL,
+          senha TEXT NOT NULL,
+          avatar TEXT
+        )
+      ''');
   }
 
   Future<int> insertUser(UserModel user) async {
@@ -42,7 +42,6 @@ class DatabaseHelper {
   Future<List<UserModel>> getUsers() async {
     final db = await instance.database;
     final result = await db.query('users');
-
     return result.map((json) => UserModel.fromMap(json)).toList();
   }
 
