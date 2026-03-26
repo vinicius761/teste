@@ -10,36 +10,18 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:teste/Models/UserModel.dart';
+import 'package:teste/utils/DB.dart';
 
 class UserController extends GetxController {
+  @override
+  void onInit() {
+    super.onInit();
+    loadUsers(); // carrega usuários do SQLite ao iniciar
+  }
+
   Rx<UserModel?> user = Rx<UserModel?>(null);
 
-  RxList<UserModel> users = <UserModel>[
-    UserModel(
-      id: 1,
-      nome: 'João',
-      sobrenome: 'Silva',
-      email: 'joao@email.com',
-      senha: '123456',
-      avatar: 'https://i.pravatar.cc/150?img=1',
-    ),
-    UserModel(
-      id: 2,
-      nome: 'Maria',
-      sobrenome: 'Oliveira',
-      email: 'maria@email.com',
-      senha: 'abcdef',
-      avatar: 'https://i.pravatar.cc/150?img=2',
-    ),
-    UserModel(
-      id: 3,
-      nome: 'Carlos',
-      sobrenome: 'Souza',
-      email: 'carlos@email.com',
-      senha: 'qwerty',
-      avatar: 'https://i.pravatar.cc/150?img=3',
-    ),
-  ].obs;
+  RxList<UserModel> users = <UserModel>[].obs;
 
   ///formulário de criação de usuário
   final formKey = GlobalKey<FormState>();
@@ -66,34 +48,44 @@ class UserController extends GetxController {
     final XFile? photo = await picker.pickImage(source: ImageSource.camera);
 
     if (photo != null) {
-      avatarPath.value = photo.path; // 👈 SALVA O CAMINHO
+      avatarPath.value = photo.path;
     }
   }
 
-  void salvar() {
+  Future<void> loadUsers() async {
+    final dbUsers = await DatabaseHelper.instance.getUsers();
+    users.assignAll(dbUsers); // atualiza a lista reativa
+  }
+
+  void salvar() async {
     if (formKey.currentState!.validate()) {
-      final res = UserModel(
+      final newUser = UserModel(
         id: DateTime.now().millisecondsSinceEpoch,
         nome: nome.text,
         sobrenome: sobrenome.text,
         email: email.text,
         senha: senha.text,
+        avatar: avatarPath.value.isEmpty ? null : avatarPath.value,
       );
 
-      users.add(res);
+      // salva no SQLite
+      await DatabaseHelper.instance.insertUser(newUser);
 
-      // limpar campos
+      // atualiza a lista reativa
+      users.add(newUser);
+
+      // limpa campos
       nome.clear();
       sobrenome.clear();
       email.clear();
       senha.clear();
       confirmarSenha.clear();
+      avatarPath.value = '';
 
       Get.back();
-
       Get.snackbar(
         'Sucesso',
-        'Usuário válido!',
+        'Usuário salvo no banco!',
         backgroundColor: Colors.green,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -116,51 +108,55 @@ class UserController extends GetxController {
     Get.toNamed('/edit');
   }
 
-  void updateUser() {
+  void updateUser() async {
     if (formEditKey.currentState!.validate()) {
+      final updatedUser = UserModel(
+        id: idEdit.value,
+        nome: nomeEdit.text,
+        sobrenome: sobrenomeEdit.text,
+        email: emailEdit.text,
+        senha: senhaEdit.text,
+        avatar: avatarPath.value,
+      );
+
+      // atualiza no SQLite
+      await DatabaseHelper.instance.updateUser(updatedUser);
+
+      // atualiza a lista reativa
       final index = users.indexWhere((u) => u.id == idEdit.value);
-
       if (index != -1) {
-        users[index] = UserModel(
-          id: idEdit.value,
-          nome: nomeEdit.text,
-          sobrenome: sobrenomeEdit.text,
-          email: emailEdit.text,
-          senha: senhaEdit.text,
-          avatar: avatarPath.value,
-        );
-
+        users[index] = updatedUser;
         users.refresh();
-
-        isEditing.value = false;
-
-        Get.back();
-
-        Get.snackbar(
-          'Sucesso',
-          'Usuário atualizado!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-        );
       }
+
+      isEditing.value = false;
+      Get.back();
+      Get.snackbar(
+        'Sucesso',
+        'Usuário atualizado no banco!',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
-  void excluir(int id) {
+  void excluir(int id) async {
     Get.dialog(
       AlertDialog(
         title: Text('Confirmar exclusão'),
         content: Text('Tem certeza que deseja excluir este usuário?'),
         actions: [
+          TextButton(onPressed: () => Get.back(), child: Text('Cancelar')),
           TextButton(
-            onPressed: () => Get.back(), // fecha o dialog
-            child: Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              users.removeWhere((user) => user.id == id);
-              Get.back(); // fecha o dialog
+            onPressed: () async {
+              // remove do SQLite
+              await DatabaseHelper.instance.deleteUser(id);
+
+              // remove da lista reativa
+              users.removeWhere((u) => u.id == id);
+
+              Get.back();
             },
             child: Text('Excluir', style: TextStyle(color: Colors.red)),
           ),
